@@ -18,6 +18,18 @@
 		8A037013160C704D00F8D9AD /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 8A037012160C704D00F8D9AD /* Default-568h@2x.png */; };
 		8A037016160C704D00F8D9AD /* OGLViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 8A037015160C704D00F8D9AD /* OGLViewController.m */; };
 		8A037019160C704D00F8D9AD /* OGLViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 8A037017160C704D00F8D9AD /* OGLViewController.xib */; };
+		8A037021160C708800F8D9AD /* OGLView.m in Sources */ = {isa = PBXBuildFile; fileRef = 8A037020160C708800F8D9AD /* OGLView.m */; };
+		8A037023160C70C300F8D9AD /* OpenGLES.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8A037022160C70C300F8D9AD /* OpenGLES.framework */; };
+		8A037025160C70C900F8D9AD /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8A037024160C70C900F8D9AD /* QuartzCore.framework */; };
+		8A037027160C749A00F8D9AD /* SimpleVertex.glsl in Resources */ = {isa = PBXBuildFile; fileRef = 8A037026160C749A00F8D9AD /* SimpleVertex.glsl */; };
+		8A037029160CBB1D00F8D9AD /* SimpleFragment.glsl in Resources */ = {isa = PBXBuildFile; fileRef = 8A037028160CBB1D00F8D9AD /* SimpleFragment.glsl */; };
+		8A037047160DABF800F8D9AD /* Particle.png in Resources */ = {isa = PBXBuildFile; fileRef = 8A037046160DABF800F8D9AD /* Particle.png */; };
+		8A73A4B5160F04CF00CF6022 /* CC3Foundation.m in Sources */ = {isa = PBXBuildFile; fileRef = 8A73A4AC160F04CF00CF6022 /* CC3Foundation.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		8A73A4B6160F04CF00CF6022 /* CC3GLMatrix.m in Sources */ = {isa = PBXBuildFile; fileRef = 8A73A4AE160F04CF00CF6022 /* CC3GLMatrix.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		8A73A4B7160F04CF00CF6022 /* CC3Kazmath.c in Sources */ = {isa = PBXBuildFile; fileRef = 8A73A4AF160F04CF00CF6022 /* CC3Kazmath.c */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		8A73A4B8160F04CF00CF6022 /* CC3Math.m in Sources */ = {isa = PBXBuildFile; fileRef = 8A73A4B3160F04CF00CF6022 /* CC3Math.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		8A73A4D6160F582A00CF6022 /* DVDrawingCurve.m in Sources */ = {isa = PBXBuildFile; fileRef = 8A73A4D2160F582A00CF6022 /* DVDrawingCurve.m */; };
+		8A73A4D7160F582A00CF6022 /* DVDrawingElement.m in Sources */ = {isa = PBXBuildFile; fileRef = 8A73A4D5160F582A00CF6022 /* DVDrawingElement.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -37,6 +49,27 @@
 		8A037014160C704D00F8D9AD /* OGLViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = OGLViewController.h; sourceTree = "<group>"; };
 		8A037015160C704D00F8D9AD /* OGLViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = OGLViewController.m; sourceTree = "<group>"; };
 		8A037018160C704D00F8D9AD /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/OGLViewController.xib; sourceTree = "<group>"; };
+		8A03701F160C708800F8D9AD /* OGLView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OGLView.h; sourceTree = "<group>"; };
+		8A037020160C708800F8D9AD /* OGLView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OGLView.m; sourceTree = "<group>"; };
+		8A037022160C70C300F8D9AD /* OpenGLES.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGLES.framework; path = System/Library/Frameworks/OpenGLES.framework; sourceTree = SDKROOT; };
+		8A037024160C70C900F8D9AD /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
+		8A037026160C749A00F8D9AD /* SimpleVertex.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = SimpleVertex.glsl; sourceTree = "<group>"; };
+		8A037028160CBB1D00F8D9AD /* SimpleFragment.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = SimpleFragment.glsl; sourceTree = "<group>"; };
+		8A037046160DABF800F8D9AD /* Particle.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Particle.png; sourceTree = "<group>"; };
+		8A73A4AB160F04CF00CF6022 /* CC3Foundation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CC3Foundation.h; sourceTree = "<group>"; };
+		8A73A4AC160F04CF00CF6022 /* CC3Foundation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CC3Foundation.m; sourceTree = "<group>"; };
+		8A73A4AD160F04CF00CF6022 /* CC3GLMatrix.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CC3GLMatrix.h; sourceTree = "<group>"; };
+		8A73A4AE160F04CF00CF6022 /* CC3GLMatrix.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CC3GLMatrix.m; sourceTree = "<group>"; };
+		8A73A4AF160F04CF00CF6022 /* CC3Kazmath.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CC3Kazmath.c; sourceTree = "<group>"; };
+		8A73A4B0160F04CF00CF6022 /* CC3Kazmath.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CC3Kazmath.h; sourceTree = "<group>"; };
+		8A73A4B1160F04CF00CF6022 /* CC3Logging.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CC3Logging.h; sourceTree = "<group>"; };
+		8A73A4B2160F04CF00CF6022 /* CC3Math.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CC3Math.h; sourceTree = "<group>"; };
+		8A73A4B3160F04CF00CF6022 /* CC3Math.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CC3Math.m; sourceTree = "<group>"; };
+		8A73A4B4160F04CF00CF6022 /* ccTypes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ccTypes.h; sourceTree = "<group>"; };
+		8A73A4D2160F582A00CF6022 /* DVDrawingCurve.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DVDrawingCurve.m; sourceTree = "<group>"; };
+		8A73A4D3160F582A00CF6022 /* DVDrawingCurve.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DVDrawingCurve.h; sourceTree = "<group>"; };
+		8A73A4D4160F582A00CF6022 /* DVDrawingElement.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DVDrawingElement.h; sourceTree = "<group>"; };
+		8A73A4D5160F582A00CF6022 /* DVDrawingElement.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DVDrawingElement.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -44,9 +77,11 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8A037001160C704D00F8D9AD /* CoreGraphics.framework in Frameworks */,
+				8A037025160C70C900F8D9AD /* QuartzCore.framework in Frameworks */,
+				8A037023160C70C300F8D9AD /* OpenGLES.framework in Frameworks */,
 				8A036FFD160C704D00F8D9AD /* UIKit.framework in Frameworks */,
 				8A036FFF160C704D00F8D9AD /* Foundation.framework in Frameworks */,
-				8A037001160C704D00F8D9AD /* CoreGraphics.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -56,6 +91,9 @@
 		8A036FED160C704D00F8D9AD = {
 			isa = PBXGroup;
 			children = (
+				8A73A4AA160F04CF00CF6022 /* Cocos3DMathLib */,
+				8A037024160C70C900F8D9AD /* QuartzCore.framework */,
+				8A037022160C70C300F8D9AD /* OpenGLES.framework */,
 				8A037002160C704D00F8D9AD /* HelloOpenGL */,
 				8A036FFB160C704D00F8D9AD /* Frameworks */,
 				8A036FF9160C704D00F8D9AD /* Products */,
@@ -83,12 +121,21 @@
 		8A037002160C704D00F8D9AD /* HelloOpenGL */ = {
 			isa = PBXGroup;
 			children = (
+				8A73A4D2160F582A00CF6022 /* DVDrawingCurve.m */,
+				8A73A4D3160F582A00CF6022 /* DVDrawingCurve.h */,
+				8A73A4D4160F582A00CF6022 /* DVDrawingElement.h */,
+				8A73A4D5160F582A00CF6022 /* DVDrawingElement.m */,
+				8A037046160DABF800F8D9AD /* Particle.png */,
 				8A03700B160C704D00F8D9AD /* OGLAppDelegate.h */,
 				8A03700C160C704D00F8D9AD /* OGLAppDelegate.m */,
 				8A037014160C704D00F8D9AD /* OGLViewController.h */,
 				8A037015160C704D00F8D9AD /* OGLViewController.m */,
 				8A037017160C704D00F8D9AD /* OGLViewController.xib */,
 				8A037003160C704D00F8D9AD /* Supporting Files */,
+				8A03701F160C708800F8D9AD /* OGLView.h */,
+				8A037020160C708800F8D9AD /* OGLView.m */,
+				8A037026160C749A00F8D9AD /* SimpleVertex.glsl */,
+				8A037028160CBB1D00F8D9AD /* SimpleFragment.glsl */,
 			);
 			path = HelloOpenGL;
 			sourceTree = "<group>";
@@ -105,6 +152,23 @@
 				8A037012160C704D00F8D9AD /* Default-568h@2x.png */,
 			);
 			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		8A73A4AA160F04CF00CF6022 /* Cocos3DMathLib */ = {
+			isa = PBXGroup;
+			children = (
+				8A73A4AB160F04CF00CF6022 /* CC3Foundation.h */,
+				8A73A4AC160F04CF00CF6022 /* CC3Foundation.m */,
+				8A73A4AD160F04CF00CF6022 /* CC3GLMatrix.h */,
+				8A73A4AE160F04CF00CF6022 /* CC3GLMatrix.m */,
+				8A73A4AF160F04CF00CF6022 /* CC3Kazmath.c */,
+				8A73A4B0160F04CF00CF6022 /* CC3Kazmath.h */,
+				8A73A4B1160F04CF00CF6022 /* CC3Logging.h */,
+				8A73A4B2160F04CF00CF6022 /* CC3Math.h */,
+				8A73A4B3160F04CF00CF6022 /* CC3Math.m */,
+				8A73A4B4160F04CF00CF6022 /* ccTypes.h */,
+			);
+			path = Cocos3DMathLib;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -164,6 +228,9 @@
 				8A037011160C704D00F8D9AD /* Default@2x.png in Resources */,
 				8A037013160C704D00F8D9AD /* Default-568h@2x.png in Resources */,
 				8A037019160C704D00F8D9AD /* OGLViewController.xib in Resources */,
+				8A037027160C749A00F8D9AD /* SimpleVertex.glsl in Resources */,
+				8A037029160CBB1D00F8D9AD /* SimpleFragment.glsl in Resources */,
+				8A037047160DABF800F8D9AD /* Particle.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -177,6 +244,13 @@
 				8A037009160C704D00F8D9AD /* main.m in Sources */,
 				8A03700D160C704D00F8D9AD /* OGLAppDelegate.m in Sources */,
 				8A037016160C704D00F8D9AD /* OGLViewController.m in Sources */,
+				8A037021160C708800F8D9AD /* OGLView.m in Sources */,
+				8A73A4B5160F04CF00CF6022 /* CC3Foundation.m in Sources */,
+				8A73A4B6160F04CF00CF6022 /* CC3GLMatrix.m in Sources */,
+				8A73A4B7160F04CF00CF6022 /* CC3Kazmath.c in Sources */,
+				8A73A4B8160F04CF00CF6022 /* CC3Math.m in Sources */,
+				8A73A4D6160F582A00CF6022 /* DVDrawingCurve.m in Sources */,
+				8A73A4D7160F582A00CF6022 /* DVDrawingElement.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -259,6 +333,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "HelloOpenGL/HelloOpenGL-Prefix.pch";
 				INFOPLIST_FILE = "HelloOpenGL/HelloOpenGL-Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = app;
 			};
@@ -270,6 +345,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "HelloOpenGL/HelloOpenGL-Prefix.pch";
 				INFOPLIST_FILE = "HelloOpenGL/HelloOpenGL-Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = app;
 			};
@@ -294,6 +370,7 @@
 				8A03701E160C704D00F8D9AD /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

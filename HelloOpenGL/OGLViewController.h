@@ -7,7 +7,17 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "OGLView.h"
 
 @interface OGLViewController : UIViewController
+{
+    OGLView * _glView;
+}
+
+@property (nonatomic, strong)  OGLView * glView;
+@property (nonatomic, weak) IBOutlet UIButton * screenShotButton;
+
+-(IBAction)screenShotButtonClicked:(id)sender;
+
 
 @end
