@@ -77,5 +77,6 @@ typedef struct {
 - (void) renderLineFromPoint:(CGPoint)start toPoint:(CGPoint)end withContainer:(DVDrawingElement*)elem;
 - (void)initializeMovieWithOutputSettings:(NSDictionary*)outputSettings;
 - (UIImage *)openGLViewScreenShot;
+- (UIImage *)openGLViewScreenShotES1;
 
 @end

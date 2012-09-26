@@ -24,6 +24,8 @@
 		8A037027160C749A00F8D9AD /* SimpleVertex.glsl in Resources */ = {isa = PBXBuildFile; fileRef = 8A037026160C749A00F8D9AD /* SimpleVertex.glsl */; };
 		8A037029160CBB1D00F8D9AD /* SimpleFragment.glsl in Resources */ = {isa = PBXBuildFile; fileRef = 8A037028160CBB1D00F8D9AD /* SimpleFragment.glsl */; };
 		8A037047160DABF800F8D9AD /* Particle.png in Resources */ = {isa = PBXBuildFile; fileRef = 8A037046160DABF800F8D9AD /* Particle.png */; };
+		8A10F83116130822003735A1 /* CoreImage.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8A10F83016130822003735A1 /* CoreImage.framework */; };
+		8A10F83416130E5C003735A1 /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8A10F83316130E5C003735A1 /* Accelerate.framework */; };
 		8A1C847016115C0D00935FB6 /* CoreVideo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8A1C846F16115C0D00935FB6 /* CoreVideo.framework */; };
 		8A1C847316115C1D00935FB6 /* CoreMedia.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8A1C847216115C1D00935FB6 /* CoreMedia.framework */; };
 		8A73A4B5160F04CF00CF6022 /* CC3Foundation.m in Sources */ = {isa = PBXBuildFile; fileRef = 8A73A4AC160F04CF00CF6022 /* CC3Foundation.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
@@ -59,6 +61,8 @@
 		8A037026160C749A00F8D9AD /* SimpleVertex.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = SimpleVertex.glsl; sourceTree = "<group>"; };
 		8A037028160CBB1D00F8D9AD /* SimpleFragment.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = SimpleFragment.glsl; sourceTree = "<group>"; };
 		8A037046160DABF800F8D9AD /* Particle.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Particle.png; sourceTree = "<group>"; };
+		8A10F83016130822003735A1 /* CoreImage.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreImage.framework; path = System/Library/Frameworks/CoreImage.framework; sourceTree = SDKROOT; };
+		8A10F83316130E5C003735A1 /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
 		8A1C846F16115C0D00935FB6 /* CoreVideo.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreVideo.framework; path = System/Library/Frameworks/CoreVideo.framework; sourceTree = SDKROOT; };
 		8A1C847216115C1D00935FB6 /* CoreMedia.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMedia.framework; path = System/Library/Frameworks/CoreMedia.framework; sourceTree = SDKROOT; };
 		8A73A4AB160F04CF00CF6022 /* CC3Foundation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CC3Foundation.h; sourceTree = "<group>"; };
@@ -83,6 +87,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8A10F83416130E5C003735A1 /* Accelerate.framework in Frameworks */,
+				8A10F83116130822003735A1 /* CoreImage.framework in Frameworks */,
 				8AFB7AA11611A050003D387C /* AVFoundation.framework in Frameworks */,
 				8A1C847316115C1D00935FB6 /* CoreMedia.framework in Frameworks */,
 				8A1C847016115C0D00935FB6 /* CoreVideo.framework in Frameworks */,
@@ -100,6 +106,8 @@
 		8A036FED160C704D00F8D9AD = {
 			isa = PBXGroup;
 			children = (
+				8A10F83316130E5C003735A1 /* Accelerate.framework */,
+				8A10F83016130822003735A1 /* CoreImage.framework */,
 				8AFB7AA01611A050003D387C /* AVFoundation.framework */,
 				8A1C847216115C1D00935FB6 /* CoreMedia.framework */,
 				8A1C846F16115C0D00935FB6 /* CoreVideo.framework */,
