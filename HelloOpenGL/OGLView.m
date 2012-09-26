@@ -92,6 +92,7 @@ float pfIdentity[] =
 		// Set a blending function appropriate for premultiplied alpha pixel data
 		glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
                 CHECK_GL;
+        [self cleanUpScreen];
         [self renderBackground];
                 CHECK_GL;
 //        [self renderLineFromPoint:CGPointMake(500, 110) toPoint:CGPointMake(120, 330) withContainer:nil];
@@ -444,8 +445,8 @@ float pfIdentity[] =
     // NSLog(@"Just took an OpenGL picture");
     [self setupDataFBO];
     CHECK_GL;
-    [self renderVBOBuffers];
-    CHECK_GL;
+//    [self renderVBOBuffers];
+//    CHECK_GL;
     
     // Get the size of the backing CAEAGLLayer
 //    GLint localBackingWidth;
@@ -893,6 +894,22 @@ float pfIdentity[] =
     CHECK_GL;
 }
 
+
+- (void) cleanUpScreen
+{
+    glClearColor(0, 104.0/255.0, 55.0/255.0, 1.0);
+    glClear(GL_COLOR_BUFFER_BIT);
+    CHECK_GL;
+    
+    BOOL needRenderBackGroundBuffer = YES;
+    if (needRenderBackGroundBuffer) {
+        [self setupDataFBO];
+        glClearColor(0, 104.0/255.0, 55.0/255.0, 1.0);
+        glClear(GL_COLOR_BUFFER_BIT);
+        CHECK_GL;
+    }
+}
+
 - (void) renderLineFromPoint:(CGPoint)start toPoint:(CGPoint)end withContainer:(DVDrawingElement*)container
 {
 //	static Vertex*		vertexBuffer = NULL;
@@ -963,7 +980,11 @@ float pfIdentity[] =
 		vertexCount += 1;
 	}
 
-
+    // Store VBO for undo
+    if (container && container.data == nil) {
+        NSData *data = [NSData dataWithBytes:vertexBuffer length:vertexCount * sizeof(Vertex)] ;
+        container.data = data;
+    }
 
 
     glBindBuffer(GL_ARRAY_BUFFER, _drawingVBO);
@@ -995,16 +1016,51 @@ float pfIdentity[] =
 	glDrawArrays(GL_POINTS, 0, vertexCount);
     CHECK_GL;
 	
-    // Store VBO for undo
-    if (container && container.data == nil) {
-        NSData *data = [NSData dataWithBytes:vertexBuffer length:vertexCount * sizeof(Vertex)] ;
-        container.data = data;
-    }
+
 
     glBindRenderbuffer(GL_RENDERBUFFER, _colorRenderBuffer);
     CHECK_GL;
     [_context presentRenderbuffer:GL_RENDERBUFFER];
     CHECK_GL;
+    
+    BOOL needRenderBackGroundBuffer = YES;
+    if (needRenderBackGroundBuffer) {
+        [self setupDataFBO];
+        glBindBuffer(GL_ARRAY_BUFFER, _drawingVBO);
+        CHECK_GL;
+        
+        glEnableVertexAttribArray(_positionSlot);
+        CHECK_GL;
+        glVertexAttribPointer(_positionSlot, 3, GL_FLOAT, GL_FALSE,
+                              sizeof(Vertex), 0);
+        CHECK_GL;
+        glEnableVertexAttribArray(_colorSlot);
+        CHECK_GL;
+        glVertexAttribPointer(_colorSlot, 4, GL_FLOAT, GL_FALSE,
+                              sizeof(Vertex), (GLvoid*) (sizeof(float) *3));
+        CHECK_GL;
+        
+        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(Vertex) * count, vertexBuffer);
+        CHECK_GL;
+        
+        
+        
+        glUniform1i(_textureSlot, 1);
+        CHECK_GL;
+        glActiveTexture(GL_TEXTURE1);
+        CHECK_GL;
+        glBindTexture(GL_TEXTURE_2D, _brushTexture);
+        CHECK_GL;
+        //
+        glDrawArrays(GL_POINTS, 0, vertexCount);
+        CHECK_GL;
+        
+        
+        
+        [_context presentRenderbuffer:GL_RENDERBUFFER];
+        CHECK_GL;
+    }
+    
 
     if (needRenderVBO) {
         [self renderVBOBuffers];
