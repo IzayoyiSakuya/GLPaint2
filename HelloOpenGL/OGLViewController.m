@@ -45,6 +45,22 @@
 -(IBAction)screenShotButtonClicked:(id)sender
 {
     NSLog(@"screenShotButtonClicked");
+    UIImage * image = [_glView openGLViewScreenShot];
+    
+    NSAssert(image, @"screenshot should not be nil");
+
+   
+    UIImageWriteToSavedPhotosAlbum(image, self, @selector(image:didFinishSavingWithError:contextInfo:), NULL);
+    
 }
 
+- (void) image:(UIImage*)image didFinishSavingWithError:(NSError *)error contextInfo:(NSDictionary*)info
+{
+    if (error) {
+        NSLog(@"image saved with error => %@", error);
+    }
+    else {
+        NSLog(@"screenshot saved successfully with context info => %@", info);
+    }
+}
 @end

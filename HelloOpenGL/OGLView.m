@@ -9,6 +9,8 @@
 #import "OGLView.h"
 #import "CC3GLMatrix.h"
 #import "DVDrawingElement.h"
+#import <CoreVideo/CoreVideo.h>
+
 
 #define kBrushOpacity		(1.0 / 3.0)
 #define kBrushPixelStep		3
@@ -51,14 +53,21 @@ float pfIdentity[] =
     if (self) {
         vertexBuffer = NULL;
         vertexMax = 64;
+        [self initializeMovieWithOutputSettings:nil];
+        
         [self setupLayer];
         CHECK_GL;
         [self setupContext];
                 CHECK_GL;
+        [self setupFrameBuffer];
+        CHECK_GL;
+        
         [self setupRenderBuffer];
                 CHECK_GL;
-        [self setupFrameBuffer];
-                CHECK_GL;
+        [self connectFrameBufferRenderBuffer];
+        CHECK_GL;
+//        [self setupDataFBO];
+//        CHECK_GL;
         [self compileShaders];
                 CHECK_GL;
         [self setupVBOs];
@@ -90,6 +99,14 @@ float pfIdentity[] =
     return self;
 }
 
++ (BOOL)supportsFastTextureUpload;
+{
+#if TARGET_IPHONE_SIMULATOR
+    return NO;
+#else
+    return (CVOpenGLESTextureCacheCreate != NULL);
+#endif
+}
 
 // Only override drawRect: if you perform custom drawing.
 // An empty implementation adversely affects performance during animation.
@@ -149,9 +166,20 @@ float pfIdentity[] =
 
 
 - (void)setupRenderBuffer {
-    glGenRenderbuffers(1, &_colorRenderBuffer);
+
+    if (!_colorRenderBuffer) {
+        [self createRenderBuffer];
+    }
+    
     glBindRenderbuffer(GL_RENDERBUFFER, _colorRenderBuffer);
+    CHECK_GL;
     [_context renderbufferStorage:GL_RENDERBUFFER fromDrawable:_eaglLayer];
+    CHECK_GL;
+}
+
+- (void) createRenderBuffer {
+    glGenRenderbuffers(1, &_colorRenderBuffer);
+    CHECK_GL;
 }
 
 - (void) destroyRenderBuffer {
@@ -169,13 +197,365 @@ float pfIdentity[] =
 
 - (void)setupFrameBuffer {
 
-    glGenFramebuffers(1, &_frameBuffer);
+    if (!_frameBuffer) {
+        [self createFrameBuffer];
+        CHECK_GL;
+    }
+    
     glBindFramebuffer(GL_FRAMEBUFFER, _frameBuffer);
+    CHECK_GL;
+
+}
+- (void) connectFrameBufferRenderBuffer {
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
                               GL_RENDERBUFFER, _colorRenderBuffer);
+    CHECK_GL;
 }
 
+- (void) createFrameBuffer
+{
+    glGenFramebuffers(1, &_frameBuffer);
+}
 
+- (void) createDataFBO
+{
+    glActiveTexture(GL_TEXTURE1);
+//    glGenFramebuffers(1, &_dataFBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, _frameBuffer);
+    
+    if ([OGLView supportsFastTextureUpload])
+    {
+#if defined(__IPHONE_6_0)
+        //        CVReturn err = CVOpenGLESTextureCacheCreate(kCFAllocatorDefault, NULL, [[GPUImageOpenGLESContext sharedImageProcessingOpenGLESContext] context], NULL, &coreVideoTextureCache);
+        CVReturn err = CVOpenGLESTextureCacheCreate(kCFAllocatorDefault, NULL, _context, NULL, &coreVideoTextureCache);
+#else
+        CVReturn err = CVOpenGLESTextureCacheCreate(kCFAllocatorDefault, NULL, (__bridge void *)[[GPUImageOpenGLESContext sharedImageProcessingOpenGLESContext] context], NULL, &coreVideoTextureCache);
+#endif
+        
+        if (err)
+        {
+            NSAssert(NO, @"Error at CVOpenGLESTextureCacheCreate %d", err);
+        }
+        
+        // Code originally sourced from http://allmybrain.com/2011/12/08/rendering-to-a-texture-with-ios-5-texture-cache-api/
+        BOOL useExternalPixelBufferPool = NO;
+        CVPixelBufferPoolRef pbPool = NULL;
+        if (useExternalPixelBufferPool) {
+            //            pbPool = [assetWriterPixelBufferInput pixelBufferPool];
+        }
+        else
+        {
+            BOOL result = [self createBufferPool:&pbPool];
+            NSAssert(result, @"buffer pool created failed.");
+            renderPixelBufferPool = pbPool;
+        }
+        
+        
+        
+        
+        
+        CFDictionaryRef empty; // empty value for attr value.
+        CFMutableDictionaryRef attrs;
+        empty = CFDictionaryCreate(kCFAllocatorDefault, // our empty IOSurface properties dictionary
+                                   NULL,
+                                   NULL,
+                                   0,
+                                   &kCFTypeDictionaryKeyCallBacks,
+                                   &kCFTypeDictionaryValueCallBacks);
+        attrs = CFDictionaryCreateMutable(kCFAllocatorDefault,
+                                          1,
+                                          &kCFTypeDictionaryKeyCallBacks,
+                                          &kCFTypeDictionaryValueCallBacks);
+        
+        CFDictionarySetValue(attrs,
+                             kCVPixelBufferIOSurfacePropertiesKey,
+                             empty);
+        
+        //CVPixelBufferPoolCreatePixelBuffer (NULL, [assetWriterPixelBufferInput pixelBufferPool], &renderTarget);
+        
+        CVPixelBufferCreate(kCFAllocatorDefault,
+                            (int)self.frame.size.width,
+                            (int)self.frame.size.height,
+                            kCVPixelFormatType_32BGRA,
+                            attrs,
+                            &renderTarget);
+        
+        
+        
+        err =  CVOpenGLESTextureCacheCreateTextureFromImage (kCFAllocatorDefault, coreVideoTextureCache, renderTarget,
+                                                             NULL, // texture attributes
+                                                             GL_TEXTURE_2D,
+                                                             GL_RGBA, // opengl format
+                                                             /*(int)videoSize.width,*/(int)self.frame.size.width,
+                                                             /*(int)videoSize.height,*/(int)self.frame.size.height,
+                                                             GL_BGRA, // native iOS format
+                                                             GL_UNSIGNED_BYTE,
+                                                             0,
+                                                             &renderTexture);
+        if (err)
+        {
+            NSAssert(NO, @"Error at CVOpenGLESTextureCacheCreateTextureFromImage %d", err);
+        }
+        
+        CFRelease(attrs);
+        CFRelease(empty);
+        
+        glBindTexture(CVOpenGLESTextureGetTarget(renderTexture), CVOpenGLESTextureGetName(renderTexture));
+        CHECK_GL;
+        //        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        //        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        CHECK_GL;
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        CHECK_GL;
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, CVOpenGLESTextureGetName(renderTexture), 0);
+        CHECK_GL;
+    }
+    else
+    {
+        //        glGenRenderbuffers(1, &movieRenderbuffer);
+        //        glBindRenderbuffer(GL_RENDERBUFFER, movieRenderbuffer);
+        //        glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA8_OES, (int)videoSize.width, (int)videoSize.height);
+        //        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, movieRenderbuffer);
+    }
+    
+	
+	GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+    
+    NSAssert(status == GL_FRAMEBUFFER_COMPLETE, @"Incomplete filter FBO: %d", status);
+
+}
+
+- (void) setupDataFBO
+{
+    if (!_dataFBO) {
+        [self createDataFBO];
+    }
+    
+    glBindFramebuffer(GL_FRAMEBUFFER, _frameBuffer);
+}
+
+- (UIImage *)openGLViewScreenShot
+{
+    // NSLog(@"Just took an OpenGL picture");
+    [self setupDataFBO];
+    CHECK_GL;
+    [self renderVBOBuffers];
+    CHECK_GL;
+    
+    // Get the size of the backing CAEAGLLayer
+    GLint localBackingWidth;
+    GLint localBackingHeight;
+    GLint colorRenderbuffer = 0;
+    
+
+    glBindFramebuffer(GL_FRAMEBUFFER, _frameBuffer);
+    CHECK_GL;
+//    glGetBufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_WIDTH, &localBackingWidth);
+//    CHECK_GL;
+//    glGetBufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_HEIGHT, &localBackingHeight);
+//    CHECK_GL;
+//    glBindRenderbuffer(GL_RENDERBUFFER_OES, colorRenderbuffer);
+//    glGetRenderbufferParameteriv(GL_RENDERBUFFER_OES, GL_RENDERBUFFER_WIDTH_OES, &localBackingWidth);
+//    glGetRenderbufferParameteriv(GL_RENDERBUFFER_OES, GL_RENDERBUFFER_HEIGHT_OES, &localBackingHeight);
+    
+    BOOL _CVOpenGLESTextureSupported = NO;
+    
+    if (_CVOpenGLESTextureSupported) {
+        //
+    }
+    else
+    {
+//        NSInteger x = 0;
+//        NSInteger y = 0;
+        NSInteger width = CVPixelBufferGetWidth(renderTarget);
+        NSInteger height = CVPixelBufferGetHeight(renderTarget);
+        NSInteger dataLength = width * height * 4;
+        GLubyte *data = (GLubyte*)malloc(dataLength * sizeof(GLubyte));
+        OSType imageType = CVPixelBufferGetPixelFormatType(renderTarget);
+        size_t bytesPerRow = CVPixelBufferGetBytesPerRow(renderTarget);
+        size_t bytesOfData = CVPixelBufferGetDataSize(renderTarget);
+        // Read pixel data from the framebuffer
+//        glPixelStorei(GL_PACK_ALIGNMENT, 4);
+//        glReadPixels(x, y, width, height, GL_RGBA, GL_UNSIGNED_BYTE, data);
+        CHECK_GL;
+        CVPixelBufferLockBaseAddress(renderTarget, 0);
+        GLubyte * _rawBytesForImage = (GLubyte *)CVPixelBufferGetBaseAddress(renderTarget);
+        // Do something with the bytes
+//        CVPixelBufferUnlockBaseAddress(renderTarget, 0);
+
+        
+        // Create a CGImage with the pixel data
+        // If your OpenGL ES content is opaque, use kCGImageAlphaNoneSkipLast to ignore the alpha channel
+        // otherwise, use kCGImageAlphaPremultipliedLast
+        CGDataProviderRef ref = CGDataProviderCreateWithData(NULL, _rawBytesForImage, /*dataLength*/ bytesOfData, NULL);
+        CGColorSpaceRef colorspace = CGColorSpaceCreateDeviceRGB();
+        CGImageRef iref = CGImageCreate(
+                                        width,
+                                        height,
+                                        8,
+                                        32,
+                                        bytesPerRow, //width * 4,
+                                        colorspace,
+                                        kCGBitmapByteOrder32Big | kCGImageAlphaPremultipliedLast,
+                                        ref, NULL, true, kCGRenderingIntentDefault);
+        CHECK_GL;
+
+        
+        // OpenGL ES measures data in PIXELS
+        // Create a graphics context with the target size measured in POINTS
+        NSInteger widthInPoints;
+        NSInteger heightInPoints;
+        if (NULL != UIGraphicsBeginImageContextWithOptions) {
+            // On iOS 4 and later, use UIGraphicsBeginImageContextWithOptions to take the scale into consideration
+            // Set the scale parameter to your OpenGL ES view's contentScaleFactor
+            // so that you get a high-resolution snapshot when its value is greater than 1.0
+            CGFloat scale = self.contentScaleFactor;
+            widthInPoints = width / scale;
+            heightInPoints = height / scale;
+            UIGraphicsBeginImageContextWithOptions(CGSizeMake(widthInPoints, heightInPoints), NO, scale);
+        }
+        else {
+            // On iOS prior to 4, fall back to use UIGraphicsBeginImageContext
+            widthInPoints = width;
+            heightInPoints = height;
+            UIGraphicsBeginImageContext(CGSizeMake(widthInPoints, heightInPoints));
+        }
+        
+        CGContextRef cgcontext = UIGraphicsGetCurrentContext();
+        
+        // UIKit coordinate system is upside down to GL/Quartz coordinate system
+        // Flip the CGImage by rendering it to the flipped bitmap context
+        // The size of the destination area is measured in POINTS
+        CGContextSetBlendMode(cgcontext, kCGBlendModeCopy);
+        CGContextDrawImage(cgcontext, CGRectMake(0.0, 0.0, widthInPoints, heightInPoints), iref);
+        
+        // Retrieve the UIImage from the current context
+        UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
+        
+        UIGraphicsEndImageContext();
+        CVPixelBufferUnlockBaseAddress(renderTarget, 0);
+        // Clean up
+        free(data);
+        CFRelease(ref);
+        CFRelease(colorspace);
+        CGImageRelease(iref);
+        
+        // return to framebuffer/renderbuffer
+
+//        [self setupFrameBuffer];
+//        [self setupRenderBuffer];
+//        [self connectFrameBufferRenderBuffer];
+//        [self destroyVertexBufferObject];
+//        [self setupVBOs];
+        
+        //
+        // Set the resulting image to the openGLScreenshotImage image.
+        //
+        CHECK_GL;
+        return image;
+        
+    }
+    return nil;
+}
+
+- (BOOL) createBufferPool:(CVPixelBufferPoolRef*)bufferPoolPtr
+{
+    
+    NSMutableDictionary * dict = [[NSMutableDictionary alloc]init];
+    
+    int pixelFormat = kCVPixelFormatType_32ARGB;
+    [dict setObject:[NSNumber numberWithInt:pixelFormat] forKey:(NSString*)kCVPixelBufferPixelFormatTypeKey];
+    
+    int width = self.frame.size.width;
+    [dict setObject:[NSNumber numberWithInt:width] forKey:(NSString*)kCVPixelBufferWidthKey];
+
+    int height = self.frame.size.height;
+    [dict setObject:[NSNumber numberWithInt:height] forKey:(NSString*)kCVPixelBufferHeightKey];
+
+
+//    [dict setObject:[NSNumber numberWithBool:YES] forKey:(NSString*)kCVPixelBufferOpenGLCompatibilityKey];
+//    [dict setObject:[NSNumber numberWithBool:YES] forKey:(NSString*)kCVPixelBufferCGImageCompatibilityKey];    
+    
+    NSDictionary *IOSurfaceProperties = [NSDictionary dictionaryWithObjectsAndKeys:
+                                         [NSNumber numberWithBool:YES], @"IOSurfaceOpenGLESFBOCompatibility",[NSNumber numberWithBool:YES], @"IOSurfaceOpenGLESTextureCompatibility",nil];
+    [dict setObject:IOSurfaceProperties forKey:(NSString*)kCVPixelBufferIOSurfacePropertiesKey];
+    
+//    CFNumberRef pixelFormatNumber = CFNumberCreate (kCFAllocatorDefault, kCFNumberIntType, &pixelFormat);
+//    
+//    int width = self.frame.size.width;
+//    CFNumberRef widthNumber = CFNumberCreate(kCFAllocatorDefault, kCFNumberIntType, &width);
+//    
+//    int height = self.frame.size.height;
+//    CFNumberRef heightNumber = CFNumberCreate(kCFAllocatorDefault, kCFNumberIntType, &height);
+    
+//    CFBooleanRef openGLCompatible = kCFBooleanTrue;
+    
+//    CFDictionaryKeyCallBacks keyCallBack = kCFTypeDictionaryKeyCallBacks;
+//    CFDictionaryValueCallBacks valueCallBack = kCFTypeDictionaryValueCallBacks;
+//    NSUInteger entryCount;
+//#if defined(__IPHONE_6_0)
+//    entryCount = 4;
+//#else
+//    entryCount = 3;
+//#endif
+//    
+//    CFMutableDictionaryRef dictionaryRef = CFDictionaryCreateMutable (kCFAllocatorDefault, entryCount, &keyCallBack, &valueCallBack);
+//    
+//    
+//    CFDictionarySetValue(dictionaryRef, kCVPixelBufferPixelFormatTypeKey,  pixelFormatNumber);
+//    CFDictionarySetValue(dictionaryRef, kCVPixelBufferWidthKey, widthNumber);
+//    CFDictionarySetValue(dictionaryRef, kCVPixelBufferHeightKey, heightNumber);
+//#if defined(__IPHONE_6_0)
+//    CFDictionarySetValue(dictionaryRef, kCVPixelBufferOpenGLESCompatibilityKey, kCFBooleanTrue);
+//#endif
+    CVReturn theError = CVPixelBufferPoolCreate(kCFAllocatorDefault, NULL, (__bridge CFDictionaryRef)dict, bufferPoolPtr);
+    if (theError)
+    {
+        NSAssert(NO, @"Error at CVPixelBufferPoolCreate %d", theError);
+        return NO;
+    }
+    else
+    {
+        return YES;
+    }
+    
+}
+
+- (void)destroyDataFBO;
+{
+    [EAGLContext setCurrentContext:_context];
+    
+    if (_dataFBO)
+	{
+		glDeleteFramebuffers(1, &_dataFBO);
+		_dataFBO = 0;
+	}
+    
+    if (_dataRenderBuffer)
+	{
+		glDeleteRenderbuffers(1, &_dataRenderBuffer);
+		_dataRenderBuffer = 0;
+	}
+    
+    if ([OGLView supportsFastTextureUpload])
+    {
+        if (coreVideoTextureCache)
+        {
+            CFRelease(coreVideoTextureCache);
+        }
+        
+        if (renderTexture)
+        {
+            CFRelease(renderTexture);
+        }
+        if (renderTarget)
+        {
+            CVPixelBufferRelease(renderTarget);
+        }
+        
+    }
+}
 
 - (void)renderBackground {
     glClearColor(0, 104.0/255.0, 55.0/255.0, 1.0);
@@ -307,8 +687,13 @@ float pfIdentity[] =
 
 - (void)setupVBOs {
     
-    vertexMax = 64;
+    if (!_drawingVBO) {
+        [self createDrawingVBOs];
+        CHECK_GL;
+    }
+    
     [self initializeVertexBufferObject];
+    CHECK_GL;
     
 //    GLuint indexBuffer;
 //    glGenBuffers(1, &indexBuffer);
@@ -317,16 +702,23 @@ float pfIdentity[] =
 //    
 }
 
+- (void) createDrawingVBOs {
+    glGenBuffers(1, &_drawingVBO);
+    CHECK_GL;
+}
+
 - (void) initializeVertexBufferObject
 {
-    glGenBuffers(1, &_drawingVBO);
     glBindBuffer(GL_ARRAY_BUFFER, _drawingVBO);
+    CHECK_GL;
     glBufferData(GL_ARRAY_BUFFER, sizeof(Vertices) * vertexMax, NULL, GL_STREAM_DRAW);
+    CHECK_GL;
 }
 
 - (void) destroyVertexBufferObject
 {
     glDeleteBuffers(1, &_drawingVBO);
+    CHECK_GL;
 }
 
 - (void) renderLineFromPoint:(CGPoint)start toPoint:(CGPoint)end withContainer:(DVDrawingElement*)container
@@ -339,6 +731,15 @@ float pfIdentity[] =
 
     BOOL needRenderVBO = NO;
     
+    GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+    
+    NSAssert(status == GL_FRAMEBUFFER_COMPLETE, @"Incomplete filter FBO: %d", status);
+
+    
+//    [self setupFrameBuffer];
+    [self setupRenderBuffer];
+    [self connectFrameBufferRenderBuffer];
+    [self setupVBOs];
 	// Convert locations from Points to Pixels
 	CGFloat scale = self.contentScaleFactor;
 	start.x *= scale;
@@ -384,8 +785,11 @@ float pfIdentity[] =
 		vertexCount += 1;
 	}
 
-    glBindBuffer(GL_ARRAY_BUFFER, _drawingVBO);
-    CHECK_GL;
+
+
+
+//    glBindBuffer(GL_ARRAY_BUFFER, _drawingVBO);
+//    CHECK_GL;
 
     glEnableVertexAttribArray(_positionSlot);
     CHECK_GL;
@@ -436,13 +840,21 @@ float pfIdentity[] =
     NSUInteger i = 0;
     static NSUInteger maxBufferCount = 1025;
     
-    GLuint vbo;
-    glGenBuffers(1, &vbo);
+//    GLuint vbo;
+//    glGenBuffers(1, &vbo);
+//    CHECK_GL;
+//    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+//    CHECK_GL;
+//    glBufferData(GL_ARRAY_BUFFER, maxBufferCount * sizeof(Vertex), nil, GL_STREAM_DRAW);
+//    CHECK_GL;
+    
+    glClearColor(0, 104.0/255.0, 55.0/255.0, 1.0);
+    glClear(GL_COLOR_BUFFER_BIT);
     CHECK_GL;
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    CHECK_GL;
-    glBufferData(GL_ARRAY_BUFFER, maxBufferCount * sizeof(Vertex), nil, GL_STREAM_DRAW);
-    CHECK_GL;
+    
+    if (vertexBuffer == NULL) {
+        vertexBuffer = malloc(maxBufferCount * sizeof(Vertex));
+    }
     
     for (i = 0; i < [drawingCurves count]; i++) {
         DVDrawingCurve * curve = [drawingCurves objectAtIndex:i];
@@ -467,16 +879,23 @@ float pfIdentity[] =
                 NSUInteger count = data.length / (sizeof(Vertex));
                 
                 if (count >= maxBufferCount) {
-                    maxBufferCount *= 2;
+                    while (count >= maxBufferCount) {
+                        vertexMax *= 2;
+                    }
                     
-                    glDeleteBuffers(1, &vbo);
+                    vertexBuffer = realloc(vertexBuffer, vertexMax * sizeof(Vertex));
+                    [self destroyVertexBufferObject];
                     CHECK_GL;
-                    glGenBuffers(1, &vbo);
+                    [self initializeVertexBufferObject];
                     CHECK_GL;
-                    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-                    CHECK_GL;
-                    glBufferData(GL_ARRAY_BUFFER, maxBufferCount * sizeof(Vertex), nil, GL_STREAM_DRAW);
-                    CHECK_GL;
+//                    glDeleteBuffers(1, &vbo);
+//                    CHECK_GL;
+//                    glGenBuffers(1, &vbo);
+//                    CHECK_GL;
+//                    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+//                    CHECK_GL;
+//                    glBufferData(GL_ARRAY_BUFFER, maxBufferCount * sizeof(Vertex), nil, GL_STREAM_DRAW);
+//                    CHECK_GL;
                 }
                 
 //                GLuint vbo;
@@ -494,10 +913,10 @@ float pfIdentity[] =
                 
                 glVertexAttribPointer(_positionSlot, 3, GL_FLOAT, GL_FALSE,
                                       sizeof(Vertex), 0);
-                                CHECK_GL;
+                CHECK_GL;
                 glVertexAttribPointer(_colorSlot, 4, GL_FLOAT, GL_FALSE,
                                       sizeof(Vertex), (GLvoid*) (sizeof(float) *3));
-                                CHECK_GL;
+                CHECK_GL;
                 glBufferSubData(GL_ARRAY_BUFFER, 0, count * sizeof(Vertex), data.bytes);
                 CHECK_GL;
                 //    GLuint indexBuffer;
@@ -847,6 +1266,108 @@ void checkGL(void)
         }
         
     }
+}
++ (NSString*) generateFileNameForAsset:(AVAsset*)asset
+{
+    // rule : [clientName] + [duration] + [generationTimeStamp] + ".mov"
+    NSString * clientName = @"DVVideoTempName";
+    NSString * duration = @"_UNKNOWN_DURATION";
+    NSString * timeStamp = [[NSDate date]description];
+    NSString * fileExtension = @".mov";
+    
+    NSString * val = [NSString stringWithFormat:@"%@%@%@%@", clientName, duration, timeStamp, fileExtension, nil];
+    
+    return val;
+}
+
+- (void)initializeMovieWithOutputSettings:(NSMutableDictionary *)outputSettings;
+{
+//    isRecording = NO;
+    
+//    self.enabled = YES;
+//    frameData = (GLubyte *) malloc((int)videoSize.width * (int)videoSize.height * 4);
+    
+    //    frameData = (GLubyte *) calloc(videoSize.width * videoSize.height * 4, sizeof(GLubyte));
+    NSError *error = nil;
+//    assetWriter = [[AVAssetWriter alloc] init];
+    movieURL = [[NSURL alloc] initFileURLWithPath:[OGLView generateFileNameForAsset:nil]];
+    fileType = AVFileTypeQuickTimeMovie;
+    assetWriter = [[AVAssetWriter alloc] initWithURL:movieURL fileType:fileType error:&error];
+    if (error != nil)
+    {
+        NSAssert(error != nil, @"Error: %@", error);
+//        if (failureBlock)
+//        {
+//            failureBlock(error);
+//        }
+//        else
+//        {
+//            if(self.delegate && [self.delegate respondsToSelector:@selector(movieRecordingFailedWithError:)])
+//            {
+//                [self.delegate movieRecordingFailedWithError:error];
+//            }
+//        }
+    }
+    
+    // Set this to make sure that a functional movie is produced, even if the recording is cut off mid-stream. Only the last second should be lost in that case.
+    assetWriter.movieFragmentInterval = CMTimeMakeWithSeconds(1.0, 1000);
+    
+    // use default output settings if none specified
+    if (outputSettings == nil)
+    {
+        outputSettings = [[NSMutableDictionary alloc] init];
+        [outputSettings setObject:AVVideoCodecH264 forKey:AVVideoCodecKey];
+        [outputSettings setObject:[NSNumber numberWithInt:self.frame.size.width] forKey:AVVideoWidthKey];
+        [outputSettings setObject:[NSNumber numberWithInt:self.frame.size.height] forKey:AVVideoHeightKey];
+    }
+    // custom output settings specified
+    else
+    {
+		NSString *videoCodec = [outputSettings objectForKey:AVVideoCodecKey];
+		NSNumber *width = [outputSettings objectForKey:AVVideoWidthKey];
+		NSNumber *height = [outputSettings objectForKey:AVVideoHeightKey];
+		
+		NSAssert(videoCodec && width && height, @"OutputSettings is missing required parameters.");
+    }
+    
+    /*
+     NSDictionary *videoCleanApertureSettings = [NSDictionary dictionaryWithObjectsAndKeys:
+     [NSNumber numberWithInt:videoSize.width], AVVideoCleanApertureWidthKey,
+     [NSNumber numberWithInt:videoSize.height], AVVideoCleanApertureHeightKey,
+     [NSNumber numberWithInt:0], AVVideoCleanApertureHorizontalOffsetKey,
+     [NSNumber numberWithInt:0], AVVideoCleanApertureVerticalOffsetKey,
+     nil];
+     
+     NSDictionary *videoAspectRatioSettings = [NSDictionary dictionaryWithObjectsAndKeys:
+     [NSNumber numberWithInt:3], AVVideoPixelAspectRatioHorizontalSpacingKey,
+     [NSNumber numberWithInt:3], AVVideoPixelAspectRatioVerticalSpacingKey,
+     nil];
+     */
+     
+     NSMutableDictionary * compressionProperties = [[NSMutableDictionary alloc] init];
+//     [compressionProperties setObject:videoCleanApertureSettings forKey:AVVideoCleanApertureKey];
+//     [compressionProperties setObject:videoAspectRatioSettings forKey:AVVideoPixelAspectRatioKey];
+     [compressionProperties setObject:[NSNumber numberWithInt: 2000000] forKey:AVVideoAverageBitRateKey];
+     [compressionProperties setObject:[NSNumber numberWithInt: 16] forKey:AVVideoMaxKeyFrameIntervalKey];
+     [compressionProperties setObject:AVVideoProfileLevelH264Main31 forKey:AVVideoProfileLevelKey];
+     
+     [outputSettings setObject:compressionProperties forKey:AVVideoCompressionPropertiesKey];
+     
+    
+    assetWriterVideoInput = [AVAssetWriterInput assetWriterInputWithMediaType:AVMediaTypeVideo outputSettings:outputSettings];
+    assetWriterVideoInput.expectsMediaDataInRealTime = NO/*_encodingLiveVideo*/;
+    
+    // You need to use BGRA for the video in order to get realtime encoding. I use a color-swizzling shader to line up glReadPixels' normal RGBA output with the movie input's BGRA.
+//    NSDictionary *sourcePixelBufferAttributesDictionary = [NSDictionary dictionaryWithObjectsAndKeys: [NSNumber numberWithInt:kCVPixelFormatType_32BGRA], kCVPixelBufferPixelFormatTypeKey,
+//                                                           [NSNumber numberWithInt:self.frame.size.width], kCVPixelBufferWidthKey,
+//                                                           [NSNumber numberWithInt:self.frame.size.height], kCVPixelBufferHeightKey,
+//                                                           nil];
+    NSDictionary *sourcePixelBufferAttributesDictionary = [NSDictionary dictionaryWithObjectsAndKeys: [NSNumber numberWithInt:kCVPixelFormatType_32ARGB], kCVPixelBufferPixelFormatTypeKey,
+                                                           nil];
+    
+    assetWriterPixelBufferInput = [AVAssetWriterInputPixelBufferAdaptor assetWriterInputPixelBufferAdaptorWithAssetWriterInput:assetWriterVideoInput sourcePixelBufferAttributes:sourcePixelBufferAttributesDictionary];
+    
+    [assetWriter addInput:assetWriterVideoInput];
 }
 
 @end

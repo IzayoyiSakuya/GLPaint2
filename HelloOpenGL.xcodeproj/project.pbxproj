@@ -24,12 +24,15 @@
 		8A037027160C749A00F8D9AD /* SimpleVertex.glsl in Resources */ = {isa = PBXBuildFile; fileRef = 8A037026160C749A00F8D9AD /* SimpleVertex.glsl */; };
 		8A037029160CBB1D00F8D9AD /* SimpleFragment.glsl in Resources */ = {isa = PBXBuildFile; fileRef = 8A037028160CBB1D00F8D9AD /* SimpleFragment.glsl */; };
 		8A037047160DABF800F8D9AD /* Particle.png in Resources */ = {isa = PBXBuildFile; fileRef = 8A037046160DABF800F8D9AD /* Particle.png */; };
+		8A1C847016115C0D00935FB6 /* CoreVideo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8A1C846F16115C0D00935FB6 /* CoreVideo.framework */; };
+		8A1C847316115C1D00935FB6 /* CoreMedia.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8A1C847216115C1D00935FB6 /* CoreMedia.framework */; };
 		8A73A4B5160F04CF00CF6022 /* CC3Foundation.m in Sources */ = {isa = PBXBuildFile; fileRef = 8A73A4AC160F04CF00CF6022 /* CC3Foundation.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		8A73A4B6160F04CF00CF6022 /* CC3GLMatrix.m in Sources */ = {isa = PBXBuildFile; fileRef = 8A73A4AE160F04CF00CF6022 /* CC3GLMatrix.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		8A73A4B7160F04CF00CF6022 /* CC3Kazmath.c in Sources */ = {isa = PBXBuildFile; fileRef = 8A73A4AF160F04CF00CF6022 /* CC3Kazmath.c */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		8A73A4B8160F04CF00CF6022 /* CC3Math.m in Sources */ = {isa = PBXBuildFile; fileRef = 8A73A4B3160F04CF00CF6022 /* CC3Math.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		8A73A4D6160F582A00CF6022 /* DVDrawingCurve.m in Sources */ = {isa = PBXBuildFile; fileRef = 8A73A4D2160F582A00CF6022 /* DVDrawingCurve.m */; };
 		8A73A4D7160F582A00CF6022 /* DVDrawingElement.m in Sources */ = {isa = PBXBuildFile; fileRef = 8A73A4D5160F582A00CF6022 /* DVDrawingElement.m */; };
+		8AFB7AA11611A050003D387C /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8AFB7AA01611A050003D387C /* AVFoundation.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -56,6 +59,8 @@
 		8A037026160C749A00F8D9AD /* SimpleVertex.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = SimpleVertex.glsl; sourceTree = "<group>"; };
 		8A037028160CBB1D00F8D9AD /* SimpleFragment.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = SimpleFragment.glsl; sourceTree = "<group>"; };
 		8A037046160DABF800F8D9AD /* Particle.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Particle.png; sourceTree = "<group>"; };
+		8A1C846F16115C0D00935FB6 /* CoreVideo.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreVideo.framework; path = System/Library/Frameworks/CoreVideo.framework; sourceTree = SDKROOT; };
+		8A1C847216115C1D00935FB6 /* CoreMedia.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMedia.framework; path = System/Library/Frameworks/CoreMedia.framework; sourceTree = SDKROOT; };
 		8A73A4AB160F04CF00CF6022 /* CC3Foundation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CC3Foundation.h; sourceTree = "<group>"; };
 		8A73A4AC160F04CF00CF6022 /* CC3Foundation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CC3Foundation.m; sourceTree = "<group>"; };
 		8A73A4AD160F04CF00CF6022 /* CC3GLMatrix.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CC3GLMatrix.h; sourceTree = "<group>"; };
@@ -70,6 +75,7 @@
 		8A73A4D3160F582A00CF6022 /* DVDrawingCurve.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DVDrawingCurve.h; sourceTree = "<group>"; };
 		8A73A4D4160F582A00CF6022 /* DVDrawingElement.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DVDrawingElement.h; sourceTree = "<group>"; };
 		8A73A4D5160F582A00CF6022 /* DVDrawingElement.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DVDrawingElement.m; sourceTree = "<group>"; };
+		8AFB7AA01611A050003D387C /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -77,6 +83,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8AFB7AA11611A050003D387C /* AVFoundation.framework in Frameworks */,
+				8A1C847316115C1D00935FB6 /* CoreMedia.framework in Frameworks */,
+				8A1C847016115C0D00935FB6 /* CoreVideo.framework in Frameworks */,
 				8A037001160C704D00F8D9AD /* CoreGraphics.framework in Frameworks */,
 				8A037025160C70C900F8D9AD /* QuartzCore.framework in Frameworks */,
 				8A037023160C70C300F8D9AD /* OpenGLES.framework in Frameworks */,
@@ -91,6 +100,9 @@
 		8A036FED160C704D00F8D9AD = {
 			isa = PBXGroup;
 			children = (
+				8AFB7AA01611A050003D387C /* AVFoundation.framework */,
+				8A1C847216115C1D00935FB6 /* CoreMedia.framework */,
+				8A1C846F16115C0D00935FB6 /* CoreVideo.framework */,
 				8A73A4AA160F04CF00CF6022 /* Cocos3DMathLib */,
 				8A037024160C70C900F8D9AD /* QuartzCore.framework */,
 				8A037022160C70C300F8D9AD /* OpenGLES.framework */,

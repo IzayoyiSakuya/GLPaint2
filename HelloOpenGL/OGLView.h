@@ -12,7 +12,7 @@
 #include <OpenGLES/ES2/gl.h>
 #include <OpenGLES/ES2/glext.h>
 #include "DVDrawingCurve.h"
-
+#import <AVFoundation/AVFoundation.h>
 typedef struct {
     float Position[3];
     float Color[4];
@@ -51,11 +51,31 @@ typedef struct {
     DVDrawingCurve * currentDrawingCurve;
     
     GLuint _drawingVBO;
+    GLuint _dataFBO;
+    GLuint _dataRenderBuffer;
+    
+    CVOpenGLESTextureCacheRef coreVideoTextureCache;
+    CVPixelBufferRef renderTarget;
+    CVOpenGLESTextureRef renderTexture;
+    CVPixelBufferPoolRef renderPixelBufferPool;
+    
+    
+    NSURL *movieURL;
+    NSString *fileType;
+	AVAssetWriter *assetWriter;
+	AVAssetWriterInput *assetWriterAudioInput;
+	AVAssetWriterInput *assetWriterVideoInput;
+    AVAssetWriterInputPixelBufferAdaptor *assetWriterPixelBufferInput;
+	dispatch_queue_t movieWritingQueue;
+    
+    
     
 }
 
 @property (nonatomic, strong) UIColor * penColor;
 
 - (void) renderLineFromPoint:(CGPoint)start toPoint:(CGPoint)end withContainer:(DVDrawingElement*)elem;
+- (void)initializeMovieWithOutputSettings:(NSDictionary*)outputSettings;
+- (UIImage *)openGLViewScreenShot;
 
 @end
