@@ -68,7 +68,7 @@ typedef struct {
     AVAssetWriterInputPixelBufferAdaptor *assetWriterPixelBufferInput;
 	dispatch_queue_t movieWritingQueue;
     
-    
+    BOOL needDrawVBO;
     
 }
 

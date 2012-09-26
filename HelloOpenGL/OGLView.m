@@ -59,6 +59,8 @@ float pfIdentity[] =
         CHECK_GL;
         [self setupContext];
                 CHECK_GL;
+        [self setupDataFBO];
+        CHECK_GL;
         [self setupFrameBuffer];
         CHECK_GL;
         
@@ -66,8 +68,7 @@ float pfIdentity[] =
                 CHECK_GL;
         [self connectFrameBufferRenderBuffer];
         CHECK_GL;
-//        [self setupDataFBO];
-//        CHECK_GL;
+
         [self compileShaders];
                 CHECK_GL;
         [self setupVBOs];
@@ -241,22 +242,6 @@ float pfIdentity[] =
         }
         
         // Code originally sourced from http://allmybrain.com/2011/12/08/rendering-to-a-texture-with-ios-5-texture-cache-api/
-        BOOL useExternalPixelBufferPool = NO;
-        CVPixelBufferPoolRef pbPool = NULL;
-        if (useExternalPixelBufferPool) {
-            //            pbPool = [assetWriterPixelBufferInput pixelBufferPool];
-        }
-        else
-        {
-            BOOL result = [self createBufferPool:&pbPool];
-            NSAssert(result, @"buffer pool created failed.");
-            renderPixelBufferPool = pbPool;
-        }
-        
-        
-        
-        
-        
         CFDictionaryRef empty; // empty value for attr value.
         CFMutableDictionaryRef attrs;
         empty = CFDictionaryCreate(kCFAllocatorDefault, // our empty IOSurface properties dictionary
@@ -273,54 +258,37 @@ float pfIdentity[] =
         CFDictionarySetValue(attrs,
                              kCVPixelBufferIOSurfacePropertiesKey,
                              empty);
-//        CFDictionarySetValue(attrs, kCVPixelBufferOpenGLCompatibilityKey, kCFBooleanTrue);
-//        int pixelFormat = kCVPixelFormatType_32BGRA;
-//        CFNumberRef pixelFormatNumber = CFNumberCreate (kCFAllocatorDefault, kCFNumberIntType, &pixelFormat);
-//        CFDictionarySetValue(attrs, kCVPixelBufferCGBitmapContextCompatibilityKey, pixelFormatNumber);
-        
         
         //CVPixelBufferPoolCreatePixelBuffer (NULL, [assetWriterPixelBufferInput pixelBufferPool], &renderTarget);
         
-        err = CVPixelBufferCreate(kCFAllocatorDefault,
-                            (int)self.frame.size.width,
-                            (int)self.frame.size.height,
+        CGSize imageSize = self.frame.size;
+        
+        CVPixelBufferCreate(kCFAllocatorDefault,
+                            (int)imageSize.width,
+                            (int)imageSize.height,
                             kCVPixelFormatType_32BGRA,
                             attrs,
                             &renderTarget);
-        if (err)
-        {
-            NSAssert(NO, @"Error at CVPixelBufferCreate %d", err);
-        }
         
-        
-        err =  CVOpenGLESTextureCacheCreateTextureFromImage (kCFAllocatorDefault, coreVideoTextureCache, renderTarget,
-                                                             NULL, // texture attributes
-                                                             GL_TEXTURE_2D,
-                                                             GL_RGBA, // opengl format
-                                                             /*(int)videoSize.width,*/(int)self.frame.size.width,
-                                                             /*(int)videoSize.height,*/(int)self.frame.size.height,
-                                                             GL_BGRA, // native iOS format
-                                                             GL_UNSIGNED_BYTE,
-                                                             0,
-                                                             &renderTexture);
-        if (err)
-        {
-            NSAssert(NO, @"Error at CVOpenGLESTextureCacheCreateTextureFromImage %d", err);
-        }
-        
+        CVOpenGLESTextureCacheCreateTextureFromImage (kCFAllocatorDefault,
+                                                      coreVideoTextureCache, renderTarget,
+                                                      NULL, // texture attributes
+                                                      GL_TEXTURE_2D,
+                                                      GL_RGBA, // opengl format
+                                                      (int)imageSize.width,
+                                                      (int)imageSize.height,
+                                                      GL_BGRA, // native iOS format
+                                                      GL_UNSIGNED_BYTE,
+                                                      0,
+                                                      &renderTexture);
         CFRelease(attrs);
         CFRelease(empty);
-        
         glBindTexture(CVOpenGLESTextureGetTarget(renderTexture), CVOpenGLESTextureGetName(renderTexture));
-        CHECK_GL;
-        //        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        //        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        CHECK_GL;
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        CHECK_GL;
+        
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, CVOpenGLESTextureGetName(renderTexture), 0);
-        CHECK_GL;
+
     }
     else
     {
@@ -342,21 +310,26 @@ float pfIdentity[] =
     if (!_dataFBO) {
         [self createDataFBO];
     }
-    glActiveTexture(GL_TEXTURE1);
-    CHECK_GL;
+//    glActiveTexture(GL_TEXTURE1);
+//    CHECK_GL;
     glBindFramebuffer(GL_FRAMEBUFFER, _dataFBO);
-    glBindTexture(CVOpenGLESTextureGetTarget(renderTexture), CVOpenGLESTextureGetName(renderTexture));
     CHECK_GL;
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    CHECK_GL;
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    CHECK_GL;
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    CHECK_GL;
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    CHECK_GL;
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, CVOpenGLESTextureGetName(renderTexture), 0);
-    CHECK_GL;
+    GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+    
+    NSAssert(status == GL_FRAMEBUFFER_COMPLETE, @"Incomplete filter FBO: %d", status);
+
+//    glBindTexture(CVOpenGLESTextureGetTarget(renderTexture), CVOpenGLESTextureGetName(renderTexture));
+//    CHECK_GL;
+//    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+//    CHECK_GL;
+//    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+//    CHECK_GL;
+//    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+//    CHECK_GL;
+//    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+//    CHECK_GL;
+//    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, CVOpenGLESTextureGetName(renderTexture), 0);
+//    CHECK_GL;
 
 }
 
@@ -368,7 +341,7 @@ float pfIdentity[] =
     // Get the size of the backing CAEAGLLayer
     GLint localBackingWidth;
     GLint localBackingHeight;
-    GLint colorRenderbuffer = 0;
+//    GLint colorRenderbuffer = 0;
     glBindRenderbuffer(GL_RENDERBUFFER, _colorRenderBuffer);
     glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_WIDTH, &localBackingWidth);
     glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_HEIGHT, &localBackingHeight);
@@ -503,9 +476,9 @@ float pfIdentity[] =
         NSInteger height = CVPixelBufferGetHeight(renderTarget);
 //        NSInteger dataLength = width * height * 4;
 //        GLubyte *data = (GLubyte*)malloc(dataLength * sizeof(GLubyte));
-        OSType imageType = CVPixelBufferGetPixelFormatType(renderTarget);
-        size_t bytesPerRow = CVPixelBufferGetBytesPerRow(renderTarget);
-        size_t bytesOfData = CVPixelBufferGetDataSize(renderTarget);
+//        OSType imageType = CVPixelBufferGetPixelFormatType(renderTarget);
+//        size_t bytesPerRow = CVPixelBufferGetBytesPerRow(renderTarget);
+//        size_t bytesOfData = CVPixelBufferGetDataSize(renderTarget);
         
 //        GLubyte * data = (GLubyte*)malloc(bytesOfData);
 
@@ -543,7 +516,7 @@ float pfIdentity[] =
 //        int bytesPerPixel = r/w;
 //
 //        
-        unsigned char *buffer = CVPixelBufferGetBaseAddress(renderTarget);
+//        unsigned char *buffer = CVPixelBufferGetBaseAddress(renderTarget);
 //
 //        UIGraphicsBeginImageContext(CGSizeMake(width, height));
 //        
@@ -574,68 +547,68 @@ float pfIdentity[] =
         
         // Do something with the bytes
 //        CVPixelBufferUnlockBaseAddress(renderTarget, 0);
-//        CIContext *ciContext = [CIContext contextWithOptions: nil];
-//        CIImage * ciImage = [[CIImage alloc] initWithCVPixelBuffer:renderTarget];
-//        CGImageRef cgImageRef = [ciContext createCGImage:ciImage fromRect:CGRectMake(0, 0, width, height)];
-//        UIImage * image = [UIImage imageWithCGImage:cgImageRef];
+        CIContext *ciContext = [CIContext contextWithOptions: nil];
+        CIImage * ciImage = [[CIImage alloc] initWithCVPixelBuffer:renderTarget];
+        CGImageRef cgImageRef = [ciContext createCGImage:ciImage fromRect:CGRectMake(0, 0, width, height)];
+        UIImage * image = [UIImage imageWithCGImage:cgImageRef];
         
         // Create a CGImage with the pixel data
         // If your OpenGL ES content is opaque, use kCGImageAlphaNoneSkipLast to ignore the alpha channel
         // otherwise, use kCGImageAlphaPremultipliedLast
-        CGDataProviderRef ref = CGDataProviderCreateWithData(NULL, buffer, /*dataLength*/ bytesOfData, NULL);
-        CGColorSpaceRef colorspace = CGColorSpaceCreateDeviceRGB();
-        CGImageRef iref = CGImageCreate(
-                                        width,
-                                        height,
-                                        8,
-                                        bytesPerRow / width * 8,
-                                        bytesPerRow, //width * 4,
-                                        colorspace,
-                                        kCGBitmapByteOrder32Big |
-                                        kCGImageAlphaPremultipliedLast, //kCGImageAlphaPremultipliedLast,
-                                        ref, NULL, true, kCGRenderingIntentDefault);
-        CHECK_GL;
-
-        
-        // OpenGL ES measures data in PIXELS
-        // Create a graphics context with the target size measured in POINTS
-        NSInteger widthInPoints;
-        NSInteger heightInPoints;
-        if (NULL != UIGraphicsBeginImageContextWithOptions) {
-            // On iOS 4 and later, use UIGraphicsBeginImageContextWithOptions to take the scale into consideration
-            // Set the scale parameter to your OpenGL ES view's contentScaleFactor
-            // so that you get a high-resolution snapshot when its value is greater than 1.0
-            CGFloat scale = self.contentScaleFactor;
-            widthInPoints = width / scale;
-            heightInPoints = height / scale;
-            UIGraphicsBeginImageContextWithOptions(CGSizeMake(widthInPoints, heightInPoints), NO, scale);
-        }
-        else {
-            // On iOS prior to 4, fall back to use UIGraphicsBeginImageContext
-            widthInPoints = width;
-            heightInPoints = height;
-            UIGraphicsBeginImageContext(CGSizeMake(widthInPoints, heightInPoints));
-        }
-        
-        CGContextRef cgcontext = UIGraphicsGetCurrentContext();
-        
-        // UIKit coordinate system is upside down to GL/Quartz coordinate system
-        // Flip the CGImage by rendering it to the flipped bitmap context
-        // The size of the destination area is measured in POINTS
-        CGContextSetBlendMode(cgcontext, kCGBlendModeCopy);
-        CGContextDrawImage(cgcontext, CGRectMake(0.0, 0.0, widthInPoints, heightInPoints), iref);
-        
-        // Retrieve the UIImage from the current context
-        UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
-        
-        UIGraphicsEndImageContext();
+//        CGDataProviderRef ref = CGDataProviderCreateWithData(NULL, data, /*dataLength*/ bytesOfData, NULL);
+//        CGColorSpaceRef colorspace = CGColorSpaceCreateDeviceRGB();
+//        CGImageRef iref = CGImageCreate(
+//                                        width,
+//                                        height,
+//                                        8,
+//                                        bytesPerRow / width * 8,
+//                                        bytesPerRow, //width * 4,
+//                                        colorspace,
+//                                        kCGBitmapByteOrder32Big |
+//                                        kCGImageAlphaPremultipliedLast, //kCGImageAlphaPremultipliedLast,
+//                                        ref, NULL, true, kCGRenderingIntentDefault);
+//        CHECK_GL;
+//
+//        
+//        // OpenGL ES measures data in PIXELS
+//        // Create a graphics context with the target size measured in POINTS
+//        NSInteger widthInPoints;
+//        NSInteger heightInPoints;
+//        if (NULL != UIGraphicsBeginImageContextWithOptions) {
+//            // On iOS 4 and later, use UIGraphicsBeginImageContextWithOptions to take the scale into consideration
+//            // Set the scale parameter to your OpenGL ES view's contentScaleFactor
+//            // so that you get a high-resolution snapshot when its value is greater than 1.0
+//            CGFloat scale = self.contentScaleFactor;
+//            widthInPoints = width / scale;
+//            heightInPoints = height / scale;
+//            UIGraphicsBeginImageContextWithOptions(CGSizeMake(widthInPoints, heightInPoints), NO, scale);
+//        }
+//        else {
+//            // On iOS prior to 4, fall back to use UIGraphicsBeginImageContext
+//            widthInPoints = width;
+//            heightInPoints = height;
+//            UIGraphicsBeginImageContext(CGSizeMake(widthInPoints, heightInPoints));
+//        }
+//        
+//        CGContextRef cgcontext = UIGraphicsGetCurrentContext();
+//        
+//        // UIKit coordinate system is upside down to GL/Quartz coordinate system
+//        // Flip the CGImage by rendering it to the flipped bitmap context
+//        // The size of the destination area is measured in POINTS
+//        CGContextSetBlendMode(cgcontext, kCGBlendModeCopy);
+//        CGContextDrawImage(cgcontext, CGRectMake(0.0, 0.0, widthInPoints, heightInPoints), iref);
+//        
+//        // Retrieve the UIImage from the current context
+//        UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
+//        
+//        UIGraphicsEndImageContext();
         CVPixelBufferUnlockBaseAddress(renderTarget, kCVPixelBufferLock_ReadOnly);
 
         // Clean up
 //        free(data);
-        CFRelease(ref);
-        CFRelease(colorspace);
-        CGImageRelease(iref);
+//        CFRelease(ref);
+//        CFRelease(colorspace);
+//        CGImageRelease(iref);
         
         // return to framebuffer/renderbuffer
 
@@ -648,8 +621,11 @@ float pfIdentity[] =
         //
         // Set the resulting image to the openGLScreenshotImage image.
         //
+        needDrawVBO = YES;
+        
         CHECK_GL;
         return image;
+        
         
     }
     return nil;
@@ -924,6 +900,12 @@ float pfIdentity[] =
 	NSUInteger			vertexCount = 0,
     count,
     i;
+    
+    if (needDrawVBO) {
+        needDrawVBO = NO;
+        [self renderVBOBuffers];
+    }
+    
 
     BOOL needRenderVBO = NO;
     
@@ -984,8 +966,8 @@ float pfIdentity[] =
 
 
 
-//    glBindBuffer(GL_ARRAY_BUFFER, _drawingVBO);
-//    CHECK_GL;
+    glBindBuffer(GL_ARRAY_BUFFER, _drawingVBO);
+    CHECK_GL;
 
     glEnableVertexAttribArray(_positionSlot);
     CHECK_GL;
@@ -1361,7 +1343,7 @@ float pfIdentity[] =
 void checkGL(void)
 {
     GLenum err;
-    if (err = glGetError())
+    if ((err = glGetError()) != 0)
     {
         switch (err)
         {
